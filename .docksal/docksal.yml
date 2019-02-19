@@ -1,0 +1,7 @@
+version: "2.1"
+
+services:
+  cli:
+    image: lpeabody/blt-cli
+    volumes:
+      - docksal_ssh_agent:/.ssh-agent:ro

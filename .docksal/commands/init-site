@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+#: exec_target = cli
+
+## Initialize/reinstall site using current DEV environment data.
+##
+## Usage: fin sync
+
+# Abort if anything fails
+set -e
+
+#-------------------------- Settings --------------------------------
+
+# PROJECT_ROOT and DOCROOT are set as env variables in cli
+SITE_DIRECTORY="default"
+DOCROOT_PATH="${PROJECT_ROOT}/${DOCROOT}"
+SITEDIR_PATH="${DOCROOT_PATH}/sites/${SITE_DIRECTORY}"
+
+#-------------------------- END: Settings --------------------------------
+
+#-------------------------- Helper functions --------------------------------
+# Console colors
+red='\033[0;31m'
+green='\033[0;32m'
+green_bg='\033[42m'
+yellow='\033[1;33m'
+NC='\033[0m'
+
+echo-red () { echo -e "${red}$1${NC}"; }
+echo-green () { echo -e "${green}$1${NC}"; }
+echo-green-bg () { echo -e "${green_bg}$1${NC}"; }
+echo-yellow () { echo -e "${yellow}$1${NC}"; }
+#-------------------------- END: Helper functions --------------------------------
+
+#-------------------------- Functions --------------------------------
+# Fix file/folder permissions
+fix_permissions ()
+{
+    echo "Making site directory writable..."
+    chmod 755 "${SITEDIR_PATH}"
+}
+
+# Install site
+site_install ()
+{
+  cd ${PROJECT_ROOT}
+  sudo composer self-update && \
+    composer install --prefer-dist --no-interaction && \
+    composer run-script blt-alias  && \
+  ./vendor/acquia/blt/bin/blt setup && \
+  echo-green 'Site was synced.' && \
+  cd ${DOCROOT_PATH} && \
+  echo-green 'Here is your super admin one-time login link:' && \
+  drush uli
+}
+
+#-------------------------- END: Functions --------------------------------
+
+#-------------------------- Execution --------------------------------
+
+# Project initialization steps
+fix_permissions
+time site_install
+
+#-------------------------- END: Execution --------------------------------
